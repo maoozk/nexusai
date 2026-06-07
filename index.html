@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>NexusAI</title>
+        <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --cyan: #75f4ff;
+                --cyan2: #28d9ff;
+                --violet: #9a7cff;
+                --ink: #050814;
+                --panel: rgba(12, 22, 43, .62);
+                --text: #eef8ff;
+                --muted: #a7bac8;
+            }
+
+            * {
+                box-sizing: border-box
+            }
+
+            html {
+                scroll-behavior: smooth
+            }
+
+            body {
+                margin: 0;
+                font-family: 'DM Sans', sans-serif;
+                color: var(--text);
+                background: #050814;
+                overflow-x: hidden;
+            }
+
+            .page-shell {
+                width: 100%;
+                min-height: calc(100 * min(var(--vh, 1vh), 1vh));
+                position: relative;
+                overflow: hidden;
+                background:
+                    radial-gradient(circle at 55% 20%, rgba(46, 172, 255, .14), transparent 26%),
+                    radial-gradient(circle at 82% 28%, rgba(145, 94, 255, .12), transparent 24%),
+                    linear-gradient(180deg, #050814 0%, #07101e 58%, #04070e 100%);
+            }
+
+            .page-shell::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background-image:
+                    linear-gradient(rgba(117, 244, 255, .05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(117, 244, 255, .05) 1px, transparent 1px);
+                background-size: 52px 52px;
+                opacity: .22;
+                pointer-events: none;
+                mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .75), rgba(0, 0, 0, .18));
+            }
+
+            .page-shell::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(circle at center, transparent 0%, transparent 45%, rgba(1, 4, 10, .62) 100%);
+                pointer-events: none;
+            }
+
+            #particle-canvas {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1;
+                opacity: .65
+            }
+
+            .content-layer {
+                position: relative;
+                z-index: 3
+            }
+
+            .glass-nav {
+                background: linear-gradient(180deg, rgba(11, 20, 41, .75), rgba(8, 15, 31, .42));
+                border-bottom: 1px solid rgba(147, 220, 255, .12);
+                backdrop-filter: blur(22px);
+                -webkit-backdrop-filter: blur(22px);
+                box-shadow: 0 12px 40px rgba(0, 0, 0, .18);
+            }
+
+            .brand-glyph {
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                position: relative;
+                border: 1px solid rgba(117, 244, 255, .75);
+                box-shadow: 0 0 20px rgba(117, 244, 255, .2), inset 0 0 16px rgba(117, 244, 255, .1);
+            }
+
+            .brand-glyph::before,
+            .brand-glyph::after {
+                content: "";
+                position: absolute;
+                inset: 7px;
+                border-radius: 50%;
+                border: 1px solid rgba(154, 124, 255, .8);
+                transform: rotate(28deg) scaleX(1.55);
+            }
+
+            .brand-glyph::after {
+                transform: rotate(-28deg) scaleX(1.55);
+                border-color: rgba(117, 244, 255, .8)
+            }
+
+            .nav-link {
+                color: rgba(231, 246, 255, .72);
+                position: relative;
+                transition: .3s ease;
+                background: none;
+                border: none;
+            }
+
+            .nav-link::after {
+                content: "";
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: -8px;
+                height: 1px;
+                background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+                transform: scaleX(0);
+                transition: .3s ease;
+            }
+
+            .nav-link:hover,
+            .nav-link:focus-visible,
+            .nav-link.active {
+                color: #fff
+            }
+
+            .nav-link:hover::after,
+            .nav-link:focus-visible::after,
+            .nav-link.active::after {
+                transform: scaleX(1)
+            }
+
+            .nav-cta,
+            .primary-button,
+            .secondary-button,
+            .ghost-button {
+                transition: .3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .nav-cta {
+                border: 1px solid rgba(117, 244, 255, .35);
+                background: linear-gradient(135deg, rgba(82, 209, 255, .12), rgba(158, 101, 255, .1));
+            }
+
+            .nav-cta:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 0 24px rgba(117, 244, 255, .18)
+            }
+
+            .primary-button {
+                background: linear-gradient(135deg, #7deeff, #9a7cff);
+                color: #07111f;
+                box-shadow: 0 16px 36px rgba(73, 213, 255, .18);
+            }
+
+            .primary-button:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 22px 44px rgba(73, 213, 255, .28)
+            }
+
+            .secondary-button {
+                border: 1px solid rgba(178, 218, 255, .18);
+                color: #e6f4ff;
+                background: rgba(10, 20, 40, .35);
+                backdrop-filter: blur(14px);
+            }
+
+            .secondary-button:hover {
+                transform: translateY(-3px);
+                border-color: rgba(117, 244, 255, .42)
+            }
+
+            .page-view {
+                display: none !important;
+                animation: pageIn .55s ease both
+            }
+
+            .page-view.active {
+                display: block !important
+            }
+
+            @keyframes pageIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px)
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0)
+                }
+            }
+
+            .eyebrow,
+            .section-kicker,
+            .micro-label {
+                font-family: 'Space Mono', monospace;
+                letter-spacing: .16em;
+                color: #83edff;
+                text-transform: uppercase;
+            }
+
+            .hero-title,
+            .section-title {
+                letter-spacing: -.07em;
+                line-height: .98;
+                background: linear-gradient(180deg, #fff 0%, #e8fbff 45%, #abc7ff 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .section-copy,
+            .hero-copy {
+                color: rgba(214, 231, 242, .72);
+                line-height: 1.75
+            }
+
+            .sphere-stage {
+                position: relative;
+                min-height: 590px
+            }
+
+            .orbital-field {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                width: min(35vw, 430px);
+                height: min(35vw, 430px);
+                min-width: 290px;
+                min-height: 290px;
+                border-radius: 50%;
+                filter: drop-shadow(0 0 40px rgba(117, 244, 255, .22));
+            }
+
+            .sphere-core {
+                position: absolute;
+                inset: 16%;
+                border-radius: 50%;
+                background:
+                    radial-gradient(circle at 32% 24%, rgba(255, 255, 255, .9), rgba(202, 242, 255, .7) 7%, rgba(65, 185, 255, .4) 18%, transparent 31%),
+                    radial-gradient(circle at 70% 68%, rgba(161, 103, 255, .68), transparent 34%),
+                    radial-gradient(circle at 42% 44%, rgba(42, 198, 255, .84), rgba(16, 96, 180, .58) 48%, rgba(4, 20, 54, .96) 78%);
+                box-shadow: inset -25px -35px 65px rgba(3, 8, 31, .82), 0 0 45px rgba(75, 211, 255, .42), 0 0 110px rgba(154, 124, 255, .3);
+                animation: pulse 5s ease-in-out infinite;
+            }
+
+            .orbit {
+                position: absolute;
+                inset: 2%;
+                border-radius: 50%;
+                border: 1px solid rgba(117, 244, 255, .36);
+                transform: rotateX(65deg) rotateZ(12deg);
+                animation: spin 16s linear infinite;
+            }
+
+            .orbit.two {
+                inset: -4%;
+                border-color: rgba(154, 124, 255, .4);
+                transform: rotateX(64deg) rotateZ(-30deg);
+                animation-duration: 23s;
+                animation-direction: reverse
+            }
+
+            .orbit.three {
+                inset: 10%;
+                border-color: rgba(255, 255, 255, .18);
+                transform: rotateX(72deg) rotateZ(78deg);
+                animation-duration: 19s
+            }
+
+            .orbit::before,
+            .orbit::after {
+                content: "";
+                position: absolute;
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background: #9af6ff;
+                box-shadow: 0 0 12px #62e7ff
+            }
+
+            .orbit::before {
+                left: 18%;
+                top: 4%
+            }
+
+            .orbit::after {
+                right: 15%;
+                bottom: 7%
+            }
+
+            @keyframes pulse {
+
+                0%,
+                100% {
+                    transform: scale(1)
+                }
+
+                50% {
+                    transform: scale(1.03)
+                }
+            }
+
+            @keyframes spin {
+                from {
+                    rotate: 0deg
+                }
+
+                to {
+                    rotate: 360deg
+                }
+            }
+
+            .glass-card,
+            .service-card,
+            .feature-card,
+            .dashboard-card,
+            .stat-card,
+            .contact-panel {
+                background: linear-gradient(145deg, rgba(18, 33, 62, .72), rgba(8, 15, 31, .46));
+                border: 1px solid rgba(117, 244, 255, .18);
+                box-shadow: 0 18px 50px rgba(0, 0, 0, .24), inset 0 1px 0 rgba(255, 255, 255, .05);
+                backdrop-filter: blur(18px);
+                -webkit-backdrop-filter: blur(18px);
+            }
+
+            .float-card {
+                position: absolute;
+                border-radius: 18px;
+                animation: float 6s ease-in-out infinite
+            }
+
+            .float-a {
+                left: 2%;
+                top: 15%;
+                width: 210px
+            }
+
+            .float-b {
+                right: 0;
+                top: 28%;
+                width: 220px;
+                animation-delay: -2s
+            }
+
+            .float-c {
+                left: 8%;
+                bottom: 9%;
+                width: 190px;
+                animation-delay: -4s
+            }
+
+            @keyframes float {
+
+                0%,
+                100% {
+                    transform: translateY(0)
+                }
+
+                50% {
+                    transform: translateY(-14px)
+                }
+            }
+
+            .service-card,
+            .feature-card,
+            .dashboard-card,
+            .stat-card {
+                border-radius: 24px;
+                transition: .35s ease;
+            }
+
+            .service-card:hover,
+            .feature-card:hover,
+            .dashboard-card:hover,
+            .stat-card:hover {
+                transform: translateY(-10px);
+                border-color: rgba(117, 244, 255, .45);
+                box-shadow: 0 24px 60px rgba(75, 201, 255, .18), 0 0 40px rgba(154, 124, 255, .1);
+            }
+
+            .icon-box {
+                width: 70px;
+                height: 70px;
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, .22), rgba(117, 244, 255, .1) 20%, transparent 55%);
+                border: 1px solid rgba(117, 244, 255, .28);
+                color: #75f4ff;
+                box-shadow: 0 0 22px rgba(117, 244, 255, .16);
+            }
+
+            .brain-stage,
+            .hub-stage,
+            .globe-stage {
+                position: relative;
+                min-height: 460px
+            }
+
+            .brain-orb,
+            .hub-orb,
+            .globe-orb {
+                width: 270px;
+                height: 270px;
+                border-radius: 50%;
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                background:
+                    radial-gradient(circle at 32% 24%, rgba(255, 255, 255, .9), rgba(202, 242, 255, .7) 8%, rgba(65, 185, 255, .36) 18%, transparent 31%),
+                    radial-gradient(circle at 68% 70%, rgba(161, 103, 255, .58), transparent 32%),
+                    radial-gradient(circle at 42% 44%, rgba(42, 198, 255, .74), rgba(16, 96, 180, .48) 50%, rgba(4, 20, 54, .96) 78%);
+                box-shadow: 0 0 55px rgba(75, 211, 255, .35), 0 0 125px rgba(154, 124, 255, .22), inset -20px -26px 50px rgba(3, 8, 31, .7);
+                animation: pulse 5s ease-in-out infinite;
+            }
+
+            .brain-ring,
+            .hub-ring,
+            .globe-ring {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%) rotateX(68deg);
+                border-radius: 50%;
+                border: 1px solid rgba(117, 244, 255, .28);
+                width: 390px;
+                height: 390px;
+                animation: spin 20s linear infinite;
+            }
+
+            .brain-ring.two,
+            .hub-ring.two,
+            .globe-ring.two {
+                width: 320px;
+                height: 320px;
+                border-color: rgba(154, 124, 255, .26);
+                animation-duration: 25s;
+                animation-direction: reverse
+            }
+
+            .dashboard-card {
+                padding: 24px
+            }
+
+            .chart-bars {
+                display: flex;
+                align-items: end;
+                gap: 8px;
+                height: 150px
+            }
+
+            .chart-bars span {
+                display: block;
+                flex: 1;
+                border-radius: 999px 999px 2px 2px;
+                background: linear-gradient(to top, rgba(117, 244, 255, .25), rgba(117, 244, 255, .95));
+                animation: bars 1.6s ease-in-out infinite
+            }
+
+            .chart-bars span:nth-child(2) {
+                animation-delay: .15s
+            }
+
+            .chart-bars span:nth-child(3) {
+                animation-delay: .3s
+            }
+
+            .chart-bars span:nth-child(4) {
+                animation-delay: .45s
+            }
+
+            .chart-bars span:nth-child(5) {
+                animation-delay: .6s
+            }
+
+            @keyframes bars {
+
+                0%,
+                100% {
+                    height: 40%
+                }
+
+                50% {
+                    height: 88%
+                }
+            }
+
+            .footer-section {
+                border-top: 1px solid rgba(117, 244, 255, .08);
+                background: linear-gradient(180deg, rgba(6, 12, 25, .42), rgba(3, 6, 14, .88));
+            }
+
+            .footer-link {
+                color: rgba(214, 231, 242, .6);
+                transition: .3s ease;
+                background: none;
+                border: none;
+                padding: 0;
+                text-align: left
+            }
+
+            .footer-link:hover {
+                color: #75f4ff
+            }
+
+            .modal-backdrop {
+                position: fixed;
+                inset: 0;
+                background: rgba(2, 5, 14, .76);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 50;
+                padding: 24px;
+                backdrop-filter: blur(16px);
+            }
+
+            .modal-backdrop.open {
+                display: flex
+            }
+
+            .demo-panel {
+                width: min(720px, 100%);
+                border-radius: 26px;
+                overflow: hidden;
+                background: linear-gradient(145deg, rgba(15, 29, 57, .95), rgba(6, 12, 29, .9));
+                border: 1px solid rgba(117, 244, 255, .22);
+                box-shadow: 0 30px 100px rgba(0, 0, 0, .55);
+                animation: pageIn .35s ease both;
+            }
+
+            .demo-visual {
+                height: 260px;
+                position: relative;
+                background: radial-gradient(circle at center, rgba(75, 201, 255, .18), transparent 40%), #07101f
+            }
+
+            .demo-orb {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                width: 130px;
+                height: 130px;
+                border-radius: 50%;
+                background: radial-gradient(circle at 30% 25%, white, #7ee7ff 12%, #276bdb 44%, #071946 78%);
+                box-shadow: 0 0 35px rgba(88, 222, 255, .65), 0 0 90px rgba(142, 95, 255, .4);
+                animation: pulse 3s ease-in-out infinite
+            }
+
+            .hidden-mobile {
+                display: flex
+            }
+
+            @media(max-width:900px) {
+                .hidden-mobile {
+                    display: none
+                }
+
+                .sphere-stage {
+                    min-height: 440px
+                }
+
+                .float-card {
+                    display: none
+                }
+            }
+
+            @media(max-width:640px) {
+                .hero-title {
+                    font-size: 3rem !important
+                }
+
+                .section-title {
+                    font-size: 2.1rem !important
+                }
+
+                .sphere-stage {
+                    min-height: 360px
+                }
+
+                .orbital-field {
+                    width: 250px;
+                    height: 250px;
+                    min-width: 250px;
+                    min-height: 250px
+                }
+
+                .brain-stage,
+                .hub-stage,
+                .globe-stage {
+                    min-height: 340px
+                }
+
+                .brain-orb,
+                .hub-orb,
+                .globe-orb {
+                    width: 210px;
+                    height: 210px
+                }
+
+                .brain-ring,
+                .hub-ring,
+                .globe-ring {
+                    width: 290px;
+                    height: 290px
+                }
+
+                .brain-ring.two,
+                .hub-ring.two,
+                .globe-ring.two {
+                    width: 240px;
+                    height: 240px
+                }
+            }
+        </style>
+        <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+        <script src="/_sdk/resizing_sdk.js" type="text/javascript"></script>
+        <script src="/_sdk/telemetry_sdk.js"></script>
+    </head>
+    <body data-template-id="__page-root" style="background: rgb(5, 8, 20);">
+        <div class="page-shell w-full"><canvas id="particle-canvas"></canvas>
+            <div class="content-layer min-h-screen flex flex-col">
+                <header data-template-id="header-shell" class="canva-header glass-nav" style="background: linear-gradient(rgba(11, 20, 41, 0.75), rgba(8, 15, 31, 0.42));">
+                    <div class="w-full max-w-7xl mx-auto px-6 lg:px-8 py-5 flex items-center justify-between"><button id="brandHome" class="flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 rounded-md"><span class="brand-glyph" aria-hidden="true"></span><span data-template-id="brand-name" class="canva-text tracking-[-0.04em] font-semibold" style="color: rgb(244, 251, 255); font-weight: 600; font-style: normal; font-size: 18px; letter-spacing: -0.03rem;">NEXUSAI</span></button>
+                        <nav class="hidden-mobile items-center gap-9" aria-label="Primary navigation"><button data-page="platform" data-template-id="nav-platform" class="canva-link nav-link text-sm" style="color: rgb(220, 236, 245); font-weight: 400; font-style: normal; font-size: 14px;">Platform</button><button data-page="intelligence" data-template-id="nav-intelligence" class="canva-link nav-link text-sm" style="color: rgb(220, 236, 245); font-weight: 400; font-style: normal; font-size: 14px;">Intelligence</button><button data-page="company" data-template-id="nav-company" class="canva-link nav-link text-sm" style="color: rgb(220, 236, 245); font-weight: 400; font-style: normal; font-size: 14px;">Company</button><button data-page="insights" data-template-id="nav-insights" class="canva-link nav-link text-sm" style="color: rgb(220, 236, 245); font-weight: 400; font-style: normal; font-size: 14px;">Insights</button></nav><button id="navLaunchBtn" data-template-id="nav-cta" class="canva-button nav-cta rounded-full px-5 py-2.5 text-sm font-medium flex items-center gap-2" style="background: linear-gradient(135deg, rgba(82, 209, 255, 0.12), rgba(158, 101, 255, 0.098)); color: rgb(234, 251, 255); font-weight: 500; font-style: normal; font-size: 14px;">Enter Nexus</button>
+                    </div>
+                </header>
+                <main class="flex-1">
+                    <section id="page-home" class="page-view active">
+                        <div class="w-full max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-20">
+                            <div class="grid lg:grid-cols-[1fr_1.08fr] gap-8 items-center">
+                                <div>
+                                    <div data-template-id="hero-eyebrow" class="canva-text eyebrow text-[11px] mb-6" style="color: rgb(149, 234, 255); font-weight: 400; font-style: normal; font-size: 11px; letter-spacing: 0.18rem;">THE OPERATING SYSTEM FOR INTELLIGENCE</div>
+                                    <h1 data-template-id="hero-title" class="canva-text hero-title font-semibold max-w-2xl" style="color: rgb(248, 253, 255); font-weight: 600; font-style: normal; font-size: 76px; letter-spacing: -0.075rem; line-height: 0.95;">Intelligence, evolved beyond limits.</h1>
+                                    <p data-template-id="hero-copy" class="canva-text hero-copy mt-7 max-w-xl" style="color: rgb(212, 232, 242); font-weight: 400; font-style: normal; font-size: 18px; line-height: 1.75;">NexusAI orchestrates real-time cognition across every signal, system, and decision layer — turning complexity into momentum.</p>
+                                    <div class="flex flex-wrap gap-4 mt-9"><button id="exploreBtn" data-template-id="primary-cta" class="canva-button primary-button rounded-full px-6 py-3.5 font-medium flex items-center gap-3" style="background: linear-gradient(135deg, rgb(121, 232, 255), rgb(138, 124, 255)); color: rgb(6, 17, 31); font-weight: 600; font-style: normal; font-size: 15px;">Explore Platform</button><button id="demoBtn" data-template-id="secondary-cta" class="canva-button secondary-button rounded-full px-6 py-3.5 font-medium flex items-center gap-3" style="background: rgba(10, 20, 40, 0.35); color: rgb(230, 244, 255); font-weight: 500; font-style: normal; font-size: 15px;">Watch System Demo</button></div>
+                                    <div class="flex items-center gap-5 mt-10 text-xs text-slate-400">
+                                        <div class="flex -space-x-2">
+                                            <div class="w-7 h-7 rounded-full border border-slate-900 bg-gradient-to-br from-cyan-200 to-blue-500"></div>
+                                            <div class="w-7 h-7 rounded-full border border-slate-900 bg-gradient-to-br from-indigo-200 to-violet-500"></div>
+                                            <div class="w-7 h-7 rounded-full border border-slate-900 bg-gradient-to-br from-sky-100 to-slate-400"></div>
+                                        </div><span data-template-id="social-proof" class="canva-text" style="color: rgb(148, 168, 185); font-weight: 400; font-style: normal; font-size: 12px;">Trusted by 140+ frontier teams</span>
+                                    </div>
+                                </div>
+                                <div class="sphere-stage">
+                                    <div class="orbital-field">
+                                        <div class="orbit"></div>
+                                        <div class="orbit two"></div>
+                                        <div class="orbit three"></div>
+                                        <div class="sphere-core"></div>
+                                    </div>
+                                    <div data-template-id="metric-card-one" class="canva-card glass-card float-card float-a p-4" style="background: linear-gradient(135deg, rgba(20, 35, 63, 0.62), rgba(11, 18, 37, 0.32));">
+                                        <div class="flex justify-between items-center"><span data-template-id="metric-one-label" class="canva-text micro-label text-[10px]" style="color: rgb(166, 230, 255); font-weight: 400; font-style: normal; font-size: 10px; letter-spacing: 0.14rem;">NEURAL THROUGHPUT</span><span class="w-2 h-2 rounded-full bg-cyan-300 shadow-[0_0_12px_rgba(103,232,249,.9)]"></span></div>
+                                        <div data-template-id="metric-one-value" class="canva-text mt-4 text-xl font-medium" style="color: rgb(246, 251, 255); font-weight: 500; font-style: normal; font-size: 24px;">9.84 TB/s</div>
+                                    </div>
+                                    <div data-template-id="metric-card-two" class="canva-card glass-card float-card float-b p-4" style="background: linear-gradient(135deg, rgba(20, 35, 63, 0.62), rgba(11, 18, 37, 0.32));">
+                                        <div class="flex justify-between items-center"><span data-template-id="metric-two-label" class="canva-text micro-label text-[10px]" style="color: rgb(166, 230, 255); font-weight: 400; font-style: normal; font-size: 10px; letter-spacing: 0.14rem;">ACTIVE INTELLIGENCE</span><i data-lucide="activity" style="width:14px;height:14px;color:#8cefff;"></i></div>
+                                        <div data-template-id="metric-two-value" class="canva-text mt-4 text-xl font-medium" style="color: rgb(246, 251, 255); font-weight: 500; font-style: normal; font-size: 24px;">87.6%</div>
+                                    </div>
+                                    <div data-template-id="metric-card-three" class="canva-card glass-card float-card float-c p-4" style="background: linear-gradient(135deg, rgba(20, 35, 63, 0.62), rgba(11, 18, 37, 0.32));">
+                                        <div class="flex justify-between items-center"><span data-template-id="metric-three-label" class="canva-text micro-label text-[10px]" style="color: rgb(166, 230, 255); font-weight: 400; font-style: normal; font-size: 10px; letter-spacing: 0.14rem;">PREDICTIVE ACCURACY</span><i data-lucide="sparkles" style="width:14px;height:14px;color:#c2b2ff;"></i></div>
+                                        <div data-template-id="metric-three-value" class="canva-text mt-4 text-xl font-medium" style="color: rgb(246, 251, 255); font-weight: 500; font-style: normal; font-size: 24px;">99.12%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section id="page-platform" class="page-view">
+                        <div class="w-full max-w-7xl mx-auto px-6 lg:px-8 py-20 lg:py-28">
+                            <div class="text-center max-w-3xl mx-auto mb-16">
+                                <p data-template-id="platform-kicker" class="canva-text section-kicker text-[11px] mb-4" style="color: rgb(114, 255, 210); font-weight: 400; font-style: normal; font-size: 11px; letter-spacing: 0.16rem;">NEXT-GENERATION SOLUTIONS</p>
+                                <h2 data-template-id="platform-title" class="canva-text section-title font-semibold" style="color: rgb(248, 253, 255); font-weight: 700; font-style: normal; font-size: 48px; letter-spacing: -0.065rem; line-height: 1.1;">Enterprise-grade capabilities at scale.</h2>
+                                <p data-template-id="platform-copy" class="canva-text section-copy mt-6" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 16px; line-height: 1.75;">A unified intelligence infrastructure built to power adaptive systems, resilient data operations, and high-performance digital experiences.</p>
+                            </div>
+                            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <article data-template-id="service-card-ai" class="canva-card service-card p-7" style="background: linear-gradient(135deg, rgba(20, 35, 63, 0.45), rgba(11, 18, 37, 0.25));">
+                                    <div class="icon-box mb-7"><i data-lucide="brain" style="width:34px;height:34px;"></i></div>
+                                    <h3 data-template-id="service-name-ai" class="canva-text font-semibold mb-3" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 18px;">Artificial Intelligence</h3>
+                                    <p data-template-id="service-desc-ai" class="canva-text text-sm leading-6 text-slate-300/80" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 13px; line-height: 1.6;">Quantum-accelerated neural models that learn, adapt, and evolve in real-time.</p>
+                                </article>
+                                <article data-template-id="service-card-cloud" class="canva-card service-card p-7" style="background: linear-gradient(135deg, rgba(20, 35, 63, 0.45), rgba(11, 18, 37, 0.25));">
+                                    <div class="icon-box mb-7"><i data-lucide="cloud" style="width:34px;height:34px;"></i></div>
+                                    <h3 data-template-id="service-name-cloud" class="canva-text font-semibold mb-3" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 18px;">Cloud Computing</h3>
+                                    <p data-template-id="service-desc-cloud" class="canva-text text-sm leading-6 text-slate-300/80" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 13px; line-height: 1.6;">Distributed infrastructure optimized for massive scale and zero latency.</p>
+                                </article>
+                                <article data-template-id="service-card-security" class="canva-card service-card p-7" style="background: linear-gradient(135deg, rgba(20, 35, 63, 0.45), rgba(11, 18, 37, 0.25));">
+                                    <div class="icon-box mb-7"><i data-lucide="shield" style="width:34px;height:34px;"></i></div>
+                                    <h3 data-template-id="service-name-security" class="canva-text font-semibold mb-3" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 18px;">Cyber Security</h3>
+                                    <p data-template-id="service-desc-security" class="canva-text text-sm leading-6 text-slate-300/80" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 13px; line-height: 1.6;">Military-grade encryption and threat detection across all data streams.</p>
+                                </article>
+                                <article data-template-id="service-card-web" class="canva-card service-card p-7" style="background: linear-gradient(135deg, rgba(20, 35, 63, 0.45), rgba(11, 18, 37, 0.25));">
+                                    <div class="icon-box mb-7"><i data-lucide="code-2" style="width:34px;height:34px;"></i></div>
+                                    <h3 data-template-id="service-name-web" class="canva-text font-semibold mb-3" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 18px;">Web Development</h3>
+                                    <p data-template-id="service-desc-web" class="canva-text text-sm leading-6 text-slate-300/80" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 13px; line-height: 1.6;">High-performance interfaces that respond to user intent in milliseconds.</p>
+                                </article>
+                                <article data-template-id="service-card-data" class="canva-card service-card p-7 md:col-span-2 lg:col-span-2" style="background: linear-gradient(135deg, rgba(20, 35, 63, 0.45), rgba(11, 18, 37, 0.25));">
+                                    <div class="icon-box mb-7"><i data-lucide="database" style="width:34px;height:34px;"></i></div>
+                                    <h3 data-template-id="service-name-data" class="canva-text font-semibold mb-3" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 18px;">Data Analytics</h3>
+                                    <p data-template-id="service-desc-data" class="canva-text text-sm leading-6 text-slate-300/80 max-w-xl" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 13px; line-height: 1.6;">Real-time insights from petabyte-scale datasets with predictive models.</p>
+                                </article>
+                            </div>
+                        </div>
+                    </section>
+                    <section id="page-intelligence" class="page-view">
+                        <div class="w-full max-w-7xl mx-auto px-6 lg:px-8 py-20 lg:py-28">
+                            <div class="text-center max-w-3xl mx-auto mb-10">
+                                <p data-template-id="intelligence-kicker" class="canva-text section-kicker text-[11px] mb-4" style="color: rgb(114, 255, 210); font-weight: 400; font-style: normal; font-size: 11px; letter-spacing: 0.16rem;">ADVANCED NEURAL ARCHITECTURE</p>
+                                <h2 data-template-id="intelligence-title" class="canva-text section-title font-semibold" style="color: rgb(248, 253, 255); font-weight: 700; font-style: normal; font-size: 48px; letter-spacing: -0.065rem; line-height: 1.1;">Holographic intelligence at the core.</h2>
+                                <p data-template-id="intelligence-copy" class="canva-text section-copy mt-6" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 16px; line-height: 1.75;">Experience AI consciousness rendered through adaptive neural pathways that evolve with every interaction.</p>
+                            </div>
+                            <div class="grid lg:grid-cols-[1fr_1.1fr] gap-10 items-center">
+                                <div class="grid sm:grid-cols-2 gap-5">
+                                    <article data-template-id="feature-card-1" class="canva-card feature-card p-6" style="background: linear-gradient(135deg, rgba(20, 35, 63, 0.52), rgba(11, 18, 37, 0.28));">
+                                        <div class="icon-box mb-6"><i data-lucide="zap" style="width:30px;height:30px;"></i></div>
+                                        <h3 data-template-id="feature-name-1" class="canva-text font-semibold mb-3" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 19px;">Lightning Cognition</h3>
+                                        <p data-template-id="feature-desc-1" class="canva-text text-sm leading-6 text-slate-300/80" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 12px; line-height: 1.5;">Nanosecond-level inference processing for instantaneous AI responses.</p>
+                                    </article>
+                                    <article data-template-id="feature-card-2" class="canva-card feature-card p-6" style="background: linear-gradient(135deg, rgba(20, 35, 63, 0.52), rgba(11, 18, 37, 0.28));">
+                                        <div class="icon-box mb-6"><i data-lucide="cpu" style="width:30px;height:30px;"></i></div>
+                                        <h3 data-template-id="feature-name-2" class="canva-text font-semibold mb-3" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 19px;">Quantum Processing</h3>
+                                        <p data-template-id="feature-desc-2" class="canva-text text-sm leading-6 text-slate-300/80" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 12px; line-height: 1.5;">Harness quantum acceleration for exponential computational breakthroughs.</p>
+                                    </article>
+                                    <article data-template-id="feature-card-3" class="canva-card feature-card p-6" style="background: linear-gradient(135deg, rgba(20, 35, 63, 0.52), rgba(11, 18, 37, 0.28));">
+                                        <div class="icon-box mb-6"><i data-lucide="network" style="width:30px;height:30px;"></i></div>
+                                        <h3 data-template-id="feature-name-3" class="canva-text font-semibold mb-3" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 19px;">Neural Mesh</h3>
+                                        <p data-template-id="feature-desc-3" class="canva-text text-sm leading-6 text-slate-300/80" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 12px; line-height: 1.5;">Interconnected intelligence layers that communicate across dimensions.</p>
+                                    </article>
+                                    <article data-template-id="feature-card-4" class="canva-card feature-card p-6" style="background: linear-gradient(135deg, rgba(20, 35, 63, 0.52), rgba(11, 18, 37, 0.28));">
+                                        <div class="icon-box mb-6"><i data-lucide="sparkles" style="width:30px;height:30px;"></i></div>
+                                        <h3 data-template-id="feature-name-4" class="canva-text font-semibold mb-3" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 19px;">Consciousness Sync</h3>
+                                        <p data-template-id="feature-desc-4" class="canva-text text-sm leading-6 text-slate-300/80" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 12px; line-height: 1.5;">Real-time cognitive synchronization across all connected intelligence nodes.</p>
+                                    </article>
+                                </div>
+                                <div class="brain-stage">
+                                    <div class="brain-ring"></div>
+                                    <div class="brain-ring two"></div>
+                                    <div class="brain-orb"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section id="page-company" class="page-view">
+                        <div class="w-full max-w-7xl mx-auto px-6 lg:px-8 py-20 lg:py-28">
+                            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                                <div>
+                                    <p data-template-id="company-kicker" class="canva-text section-kicker text-[11px] mb-5" style="color: rgb(114, 255, 210); font-weight: 400; font-style: normal; font-size: 11px; letter-spacing: 0.18rem;">WORLDWIDE INFRASTRUCTURE</p>
+                                    <h2 data-template-id="company-title" class="canva-text section-title font-semibold" style="color: rgb(248, 253, 255); font-weight: 700; font-style: normal; font-size: 48px; letter-spacing: -0.06rem; line-height: 1.15;">Global intelligence network.</h2>
+                                    <p data-template-id="company-copy" class="canva-text section-copy mt-6 max-w-xl" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 16px; line-height: 1.75;">NexusAI connects the world through intelligent networks, enabling seamless collaboration across borders with real-time synchronization at global scale.</p>
+                                    <div class="grid grid-cols-3 gap-4 mt-10">
+                                        <div class="stat-card p-5 text-center">
+                                            <div data-template-id="company-stat-1" class="canva-text text-2xl font-bold text-cyan-200" style="color: rgb(117, 244, 255); font-weight: 700; font-style: normal; font-size: 30px;">2,847</div>
+                                            <p data-template-id="company-stat-label-1" class="canva-text micro-label text-[9px] mt-3" style="color: rgb(166, 230, 255); font-weight: 400; font-style: normal; font-size: 9px; letter-spacing: 0.12rem;">ACTIVE PLATFORMS</p>
+                                        </div>
+                                        <div class="stat-card p-5 text-center">
+                                            <div data-template-id="company-stat-2" class="canva-text text-2xl font-bold text-cyan-200" style="color: rgb(117, 244, 255); font-weight: 700; font-style: normal; font-size: 30px;">15.9K</div>
+                                            <p data-template-id="company-stat-label-2" class="canva-text micro-label text-[9px] mt-3" style="color: rgb(166, 230, 255); font-weight: 400; font-style: normal; font-size: 9px; letter-spacing: 0.12rem;">GLOBAL CONNECTIONS</p>
+                                        </div>
+                                        <div class="stat-card p-5 text-center">
+                                            <div data-template-id="company-stat-3" class="canva-text text-2xl font-bold text-cyan-200" style="color: rgb(117, 244, 255); font-weight: 700; font-style: normal; font-size: 30px;">94%</div>
+                                            <p data-template-id="company-stat-label-3" class="canva-text micro-label text-[9px] mt-3" style="color: rgb(166, 230, 255); font-weight: 400; font-style: normal; font-size: 9px; letter-spacing: 0.12rem;">ACCURACY RATE</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="globe-stage">
+                                    <div class="globe-ring"></div>
+                                    <div class="globe-ring two"></div>
+                                    <div class="globe-orb"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section id="page-insights" class="page-view">
+                        <div class="w-full max-w-7xl mx-auto px-6 lg:px-8 py-20 lg:py-28">
+                            <div class="text-center max-w-3xl mx-auto mb-16">
+                                <p data-template-id="insights-kicker" class="canva-text section-kicker text-[11px] mb-4" style="color: rgb(114, 255, 210); font-weight: 400; font-style: normal; font-size: 11px; letter-spacing: 0.16rem;">REAL-TIME DATA INTELLIGENCE</p>
+                                <h2 data-template-id="insights-title" class="canva-text section-title font-semibold" style="color: rgb(248, 253, 255); font-weight: 700; font-style: normal; font-size: 48px; letter-spacing: -0.065rem; line-height: 1.1;">Live analytics &amp; performance metrics.</h2>
+                                <p data-template-id="insights-copy" class="canva-text section-copy mt-6" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 16px; line-height: 1.75;">Monitor AI cognition performance across distributed networks in real-time with advanced visual intelligence.</p>
+                            </div>
+                            <div class="grid lg:grid-cols-3 gap-6">
+                                <article data-template-id="dashboard-card-main" class="canva-card dashboard-card lg:col-span-2" style="background: linear-gradient(145deg, rgba(15, 29, 57, 0.72), rgba(8, 15, 31, 0.48));">
+                                    <div class="flex items-center justify-between mb-6">
+                                        <h3 data-template-id="dashboard-main-title" class="canva-text font-semibold" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 18px;">Neural Processing Load</h3><span data-template-id="dashboard-badge" class="canva-text micro-label text-[10px] px-3 py-1 rounded-full border border-cyan-300/20 bg-cyan-300/10" style="color: rgb(114, 255, 210); font-weight: 400; font-style: normal; font-size: 10px; letter-spacing: 0.1rem;">LIVE</span>
+                                    </div>
+                                    <div class="chart-bars"><span style="height:60%"></span><span style="height:82%"></span><span style="height:55%"></span><span style="height:88%"></span><span style="height:72%"></span><span style="height:94%"></span></div>
+                                    <div class="grid grid-cols-2 gap-4 mt-6">
+                                        <div class="rounded-xl border border-cyan-200/10 bg-cyan-300/5 p-4">
+                                            <p data-template-id="dashboard-peak-label" class="canva-text micro-label text-[10px]" style="color: rgb(166, 230, 255); font-weight: 400; font-style: normal; font-size: 10px; letter-spacing: 0.1rem;">PEAK</p>
+                                            <div data-template-id="dashboard-peak-value" class="canva-text mt-2 text-lg font-bold text-cyan-200" style="color: rgb(117, 244, 255); font-weight: 700; font-style: normal; font-size: 16px;">94.2%</div>
+                                        </div>
+                                        <div class="rounded-xl border border-cyan-200/10 bg-cyan-300/5 p-4">
+                                            <p data-template-id="dashboard-avg-label" class="canva-text micro-label text-[10px]" style="color: rgb(166, 230, 255); font-weight: 400; font-style: normal; font-size: 10px; letter-spacing: 0.1rem;">AVERAGE</p>
+                                            <div data-template-id="dashboard-avg-value" class="canva-text mt-2 text-lg font-bold text-cyan-200" style="color: rgb(117, 244, 255); font-weight: 700; font-style: normal; font-size: 16px;">72.8%</div>
+                                        </div>
+                                    </div>
+                                </article>
+                                <div class="grid gap-6">
+                                    <article data-template-id="dashboard-card-small-1" class="canva-card dashboard-card" style="background: linear-gradient(145deg, rgba(15, 29, 57, 0.72), rgba(8, 15, 31, 0.48));">
+                                        <h3 data-template-id="dashboard-small-title-1" class="canva-text font-semibold mb-6" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 14px;">Quantum Throughput</h3>
+                                        <div class="flex items-end gap-2 h-28"><span class="flex-1 rounded-t bg-cyan-300/30 h-12"></span><span class="flex-1 rounded-t bg-cyan-300/50 h-20"></span><span class="flex-1 rounded-t bg-cyan-300/70 h-16"></span><span class="flex-1 rounded-t bg-cyan-300 h-24"></span></div>
+                                    </article>
+                                    <article data-template-id="dashboard-card-small-2" class="canva-card dashboard-card" style="background: linear-gradient(145deg, rgba(15, 29, 57, 0.72), rgba(8, 15, 31, 0.48));">
+                                        <h3 data-template-id="dashboard-small-title-2" class="canva-text font-semibold mb-6" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 14px;">Model Accuracy</h3>
+                                        <div class="h-28 flex items-center justify-center">
+                                            <div class="w-28 h-28 rounded-full border-[10px] border-cyan-300/20 border-t-cyan-300 border-r-violet-300 animate-spin"></div>
+                                        </div>
+                                    </article>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section id="page-contact" class="page-view">
+                        <div class="w-full max-w-7xl mx-auto px-6 lg:px-8 py-20 lg:py-28">
+                            <div class="text-center max-w-3xl mx-auto mb-16">
+                                <p data-template-id="contact-kicker" class="canva-text section-kicker text-[11px] mb-4" style="color: rgb(114, 255, 210); font-weight: 400; font-style: normal; font-size: 11px; letter-spacing: 0.16rem;">NEXUS COMMUNICATION HUB</p>
+                                <h2 data-template-id="contact-title" class="canva-text section-title font-semibold" style="color: rgb(248, 253, 255); font-weight: 700; font-style: normal; font-size: 48px; letter-spacing: -0.065rem; line-height: 1.1;">Connect with our intelligence network.</h2>
+                                <p data-template-id="contact-copy" class="canva-text section-copy mt-6" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 16px; line-height: 1.75;">Reach out to our team and discover how NexusAI can transform your enterprise with adaptive intelligence infrastructure.</p>
+                            </div>
+                            <div class="grid lg:grid-cols-2 gap-10 items-center">
+                                <div class="hub-stage">
+                                    <div class="hub-ring"></div>
+                                    <div class="hub-ring two"></div>
+                                    <div class="hub-orb"></div>
+                                </div>
+                                <div class="contact-panel rounded-3xl p-7 lg:p-9">
+                                    <p data-template-id="form-kicker" class="canva-text section-kicker text-[10px] mb-3" style="color: rgb(114, 255, 210); font-weight: 400; font-style: normal; font-size: 10px; letter-spacing: 0.12rem;">LET'S COLLABORATE</p>
+                                    <h3 data-template-id="form-title" class="canva-text font-semibold mb-7" style="color: rgb(255, 255, 255); font-weight: 700; font-style: normal; font-size: 24px;">Send your message</h3>
+                                    <form id="contactForm" class="space-y-5">
+                                        <div><label for="contact-name" data-template-id="form-label-name" class="canva-text block text-sm font-medium mb-2" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 13px;">Full Name</label><input id="contact-name" data-template-id="form-input-name" class="canva-input w-full rounded-xl border border-cyan-200/15 bg-slate-950/30 px-4 py-3 text-white outline-none focus:border-cyan-300/50" type="text" placeholder="Your name" style="font-weight: 400; font-style: normal; font-size: 16px;"></div>
+                                        <div><label for="contact-email" data-template-id="form-label-email" class="canva-text block text-sm font-medium mb-2" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 13px;">Email Address</label><input id="contact-email" data-template-id="form-input-email" class="canva-input w-full rounded-xl border border-cyan-200/15 bg-slate-950/30 px-4 py-3 text-white outline-none focus:border-cyan-300/50" type="email" placeholder="your@email.com" style="font-weight: 400; font-style: normal; font-size: 16px;"></div>
+                                        <div><label for="contact-message" data-template-id="form-label-message" class="canva-text block text-sm font-medium mb-2" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 13px;">Your Message</label><textarea id="contact-message" data-template-id="form-input-message" rows="5" class="canva-input w-full rounded-xl border border-cyan-200/15 bg-slate-950/30 px-4 py-3 text-white outline-none focus:border-cyan-300/50 resize-none" style="font-weight: 400; font-style: normal; font-size: 16px;">Tell us about your project...</textarea></div><button type="submit" data-template-id="form-submit-button" class="canva-button primary-button rounded-xl px-5 py-3 font-medium w-full" style="background: linear-gradient(135deg, rgb(121, 232, 255), rgb(138, 124, 255)); color: rgb(6, 17, 31); font-weight: 600; font-style: normal; font-size: 16px;">Send to Network</button>
+                                    </form>
+                                    <p id="formMessage" data-template-id="form-message" class="canva-text hidden mt-4 text-sm text-cyan-200" style="color: rgb(114, 255, 210); font-weight: 400; font-style: normal; font-size: 14px;">Transmission received.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </main>
+                <footer data-template-id="footer-shell" class="canva-footer footer-section" style="background: linear-gradient(rgba(6, 12, 25, 0.42), rgba(3, 6, 14, 0.88));">
+                    <div class="w-full max-w-7xl mx-auto px-6 lg:px-8 py-14">
+                        <div class="grid md:grid-cols-[1.2fr_2fr] gap-10">
+                            <div>
+                                <div class="flex items-center gap-3 mb-5"><span class="brand-glyph" aria-hidden="true"></span><span data-template-id="footer-brand" class="canva-text font-semibold tracking-[-0.04em]" style="color: rgb(244, 251, 255); font-weight: 600; font-style: normal; font-size: 18px;">NEXUSAI</span></div>
+                                <p data-template-id="footer-tagline" class="canva-text text-sm leading-6 max-w-xs text-slate-300/70" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 14px; line-height: 1.6;">Distributed cognition across boundaries.</p>
+                            </div>
+                            <div class="grid grid-cols-3 gap-6">
+                                <div>
+                                    <p data-template-id="footer-product-title" class="canva-text micro-label text-[10px] mb-4" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 10px; letter-spacing: 0.12rem;">PRODUCT</p>
+                                    <div class="space-y-3 flex flex-col"><button data-page="platform" data-template-id="footer-link-platform" class="canva-link footer-link text-sm" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 16px;">Platform</button><button data-page="intelligence" data-template-id="footer-link-intelligence" class="canva-link footer-link text-sm" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 16px;">Intelligence</button><button data-page="insights" data-template-id="footer-link-insights" class="canva-link footer-link text-sm" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 16px;">Insights</button></div>
+                                </div>
+                                <div>
+                                    <p data-template-id="footer-company-title" class="canva-text micro-label text-[10px] mb-4" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 10px; letter-spacing: 0.12rem;">COMPANY</p>
+                                    <div class="space-y-3 flex flex-col"><button data-page="company" data-template-id="footer-link-company" class="canva-link footer-link text-sm" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 16px;">Company</button><button data-page="contact" data-template-id="footer-link-contact" class="canva-link footer-link text-sm" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 16px;">Contact</button><button data-page="home" data-template-id="footer-link-home" class="canva-link footer-link text-sm" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 16px;">Home</button></div>
+                                </div>
+                                <div>
+                                    <p data-template-id="footer-legal-title" class="canva-text micro-label text-[10px] mb-4" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 10px; letter-spacing: 0.12rem;">LEGAL</p>
+                                    <div class="space-y-3 flex flex-col"><span data-template-id="footer-link-privacy" class="canva-text text-sm text-slate-300/60" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 16px;">Privacy Policy</span><span data-template-id="footer-link-terms" class="canva-text text-sm text-slate-300/60" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 16px;">Terms of Service</span><span data-template-id="footer-link-support" class="canva-text text-sm text-slate-300/60" style="color: rgb(214, 231, 242); font-weight: 400; font-style: normal; font-size: 16px;">Support</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-10 pt-6 border-t border-cyan-100/10 flex flex-col sm:flex-row justify-between gap-4 text-xs text-slate-400">
+                            <p data-template-id="footer-copyright" class="canva-text" style="color: rgb(122, 159, 176); font-weight: 400; font-style: normal; font-size: 12px;">© 2026 NexusAI. Intelligence evolved.</p>
+                            <p data-template-id="footer-status" class="canva-text" style="color: rgb(148, 168, 185); font-weight: 400; font-style: normal; font-size: 12px;">All systems operational</p>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+        <div id="demoModal" class="modal-backdrop" aria-hidden="true">
+            <div class="demo-panel" role="dialog" aria-modal="true" aria-labelledby="demoTitle">
+                <div class="flex items-center justify-between px-6 py-5 border-b border-cyan-100/10">
+                    <div>
+                        <p data-template-id="demo-kicker" class="canva-text micro-label text-[10px] mb-2" style="color: rgb(166, 230, 255); font-weight: 400; font-style: normal; font-size: 10px; letter-spacing: 0.14rem;">NEXUS CORE VISUALIZATION</p>
+                        <h2 id="demoTitle" data-template-id="demo-title" class="canva-text font-medium" style="color: rgb(246, 251, 255); font-weight: 500; font-style: normal; font-size: 24px;">Live cognition in motion</h2>
+                    </div><button id="closeDemo" aria-label="Close demo" class="w-9 h-9 rounded-full border border-cyan-100/15 flex items-center justify-center text-slate-300 hover:text-white hover:border-cyan-200/40 transition"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+                </div>
+                <div class="demo-visual">
+                    <div class="demo-orb"></div>
+                </div>
+                <div class="px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <p data-template-id="demo-copy" class="canva-text text-sm text-slate-400 max-w-md" style="color: rgb(174, 190, 203); font-weight: 400; font-style: normal; font-size: 14px; line-height: 1.5;">A glimpse into how NexusAI interprets signal, predicts intent, and continuously adapts in real time.</p><button id="closeDemoAlt" data-template-id="demo-close-button" class="canva-button rounded-full px-5 py-2.5 border border-cyan-200/20 text-sm text-cyan-100 hover:border-cyan-200/50 transition" style="background: rgba(12, 28, 52, 0.36); color: rgb(217, 250, 255); font-weight: 500; font-style: normal; font-size: 14px;">Close Visualization</button>
+                </div>
+            </div>
+        </div>
+        <script src="/_sdk/editing_sdk.js"></script>
+        <script>
+            lucide.createIcons();
+            const pages = ['home', 'platform', 'intelligence', 'company', 'insights', 'contact'];
+            const navButtons = document.querySelectorAll('[data-page]');
+            const pageViews = document.querySelectorAll('.page-view');
+
+            function showPage(page) {
+                if (!pages.includes(page)) page = 'home';
+                pageViews.forEach(view => view.classList.toggle('active', view.id === 'page-' + page));
+                navButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.page === page));
+                history.replaceState(null, '', '#' + page);
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+            navButtons.forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.page)));
+            document.getElementById('brandHome').addEventListener('click', () => showPage('home'));
+            document.getElementById('exploreBtn').addEventListener('click', () => showPage('platform'));
+            const initialHash = window.location.hash.replace('#', '');
+            if (initialHash && pages.includes(initialHash)) showPage(initialHash);
+            const modal = document.getElementById('demoModal');
+            const demoBtn = document.getElementById('demoBtn');
+            const navLaunchBtn = document.getElementById('navLaunchBtn');
+            const closeDemo = document.getElementById('closeDemo');
+            const closeDemoAlt = document.getElementById('closeDemoAlt');
+
+            function openDemo() {
+                modal.classList.add('open');
+                modal.setAttribute('aria-hidden', 'false');
+                closeDemo.focus();
+            }
+
+            function closeDemoModal() {
+                modal.classList.remove('open');
+                modal.setAttribute('aria-hidden', 'true');
+                demoBtn.focus();
+            }
+            demoBtn.addEventListener('click', openDemo);
+            navLaunchBtn.addEventListener('click', openDemo);
+            closeDemo.addEventListener('click', closeDemoModal);
+            closeDemoAlt.addEventListener('click', closeDemoModal);
+            modal.addEventListener('click', e => {
+                if (e.target === modal) closeDemoModal();
+            });
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && modal.classList.contains('open')) closeDemoModal();
+            });
+            const form = document.getElementById('contactForm');
+            const formMessage = document.getElementById('formMessage');
+            form.addEventListener('submit', e => {
+                e.preventDefault();
+                const name = document.getElementById('contact-name').value.trim();
+                const email = document.getElementById('contact-email').value.trim();
+                const message = document.getElementById('contact-message').value.trim();
+                formMessage.classList.remove('hidden');
+                if (!name || !email || !message) {
+                    formMessage.textContent = 'Please complete all fields before sending.';
+                    return;
+                }
+                formMessage.textContent = 'Transmission received. Our intelligence team will respond shortly.';
+                form.reset();
+            });
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let w, h, particles = [];
+
+            function resize() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+                particles = Array.from({
+                    length: Math.min(85, Math.floor(w / 16))
+                }, () => ({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    r: Math.random() * 1.4 + .3,
+                    vx: (Math.random() - .5) * .14,
+                    vy: (Math.random() - .5) * .14,
+                    a: Math.random() * .55 + .18
+                }));
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+                particles.forEach((p, i) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if (p.x < 0 || p.x > w) p.vx *= -1;
+                    if (p.y < 0 || p.y > h) p.vy *= -1;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(145,230,255,${p.a})`;
+                    ctx.fill();
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const q = particles[j],
+                            dx = p.x - q.x,
+                            dy = p.y - q.y,
+                            dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 110) {
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(q.x, q.y);
+                            ctx.strokeStyle = `rgba(100,214,255,${0.06*(1-dist/110)})`;
+                            ctx.lineWidth = .6;
+                            ctx.stroke();
+                        }
+                    }
+                });
+                requestAnimationFrame(draw);
+            }
+            resize();
+            draw();
+            window.addEventListener('resize', resize);
+        </script>
+        <script>
+            (function() {
+                function c() {
+                    var b = a.contentDocument || a.contentWindow.document;
+                    if (b) {
+                        var d = b.createElement('script');
+                        d.innerHTML = "window.__CF$cv$params={r:'a0645c2f0b293a36',t:'MTc4MDU0OTA4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+                        b.getElementsByTagName('head')[0].appendChild(d)
+                    }
+                }
+                if (document.body) {
+                    var a = document.createElement('iframe');
+                    a.height = 1;
+                    a.width = 1;
+                    a.style.position = 'absolute';
+                    a.style.top = 0;
+                    a.style.left = 0;
+                    a.style.border = 'none';
+                    a.style.visibility = 'hidden';
+                    document.body.appendChild(a);
+                    if ('loading' !== document.readyState) c();
+                    else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c);
+                    else {
+                        var e = document.onreadystatechange || function() {};
+                        document.onreadystatechange = function(b) {
+                            e(b);
+                            'loading' !== document.readyState && (document.onreadystatechange = e, c())
+                        }
+                    }
+                }
+            })();
+        </script>
+    </body>
+</html>
